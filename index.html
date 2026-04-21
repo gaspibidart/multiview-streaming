@@ -268,7 +268,34 @@ const CANALES=[
 ];
 
 const MAX=9;
-let channels=CANALES.map(c=>({...c,main:false,src:'preset'}));
+// Cargar selección guardada o usar los 9 por defecto
+function loadSavedChannels(){
+  try{
+    const saved=localStorage.getItem('mv_channels');
+    if(saved){
+      const ids=JSON.parse(saved); // [{id, main, src, url}]
+      return ids.map(s=>{
+        if(s.src==='preset'){
+          const preset=CANALES.find(c=>c.id===s.id);
+          if(preset) return {...preset,main:!!s.main,src:'preset'};
+        }
+        if(s.src==='custom') return {src:'custom',url:s.url||'',name:s.name||'',color:'var(--t2)',main:!!s.main};
+        return null;
+      }).filter(Boolean);
+    }
+  }catch(e){}
+  return CANALES.map(c=>({...c,main:false,src:'preset'}));
+}
+function saveChannels(){
+  try{
+    const toSave=channels.map(c=>c.src==='preset'
+      ? {id:c.id,src:'preset',main:c.main}
+      : {src:'custom',url:c.url,name:c.name,main:c.main}
+    );
+    localStorage.setItem('mv_channels',JSON.stringify(toSave));
+  }catch(e){}
+}
+let channels=loadSavedChannels();
 let layout='grid';
 let muteMap={};
 let statsTimers={};
@@ -319,14 +346,15 @@ function renderCfg(){
     }<button class="star-btn${ch.main?' on':''}" data-i="${i}" title="Marcar como principal">&#9733;</button>${channels.length>1?`<button class="btn ghost sm" data-rm="${i}" style="padding:3px 6px;">&#10005;</button>`:''}`;
     list.appendChild(row);
   });
-  list.querySelectorAll('input[data-i]').forEach(el=>el.addEventListener('input',e=>channels[+e.target.dataset.i].url=e.target.value.trim()));
+  list.querySelectorAll('input[data-i]').forEach(el=>el.addEventListener('input',e=>{channels[+e.target.dataset.i].url=e.target.value.trim();saveChannels();}));
   list.querySelectorAll('.star-btn').forEach(el=>el.addEventListener('click',e=>{
     const idx=+e.currentTarget.dataset.i;
     channels.forEach((c,i)=>c.main=i===idx?!c.main:false);
-    renderCfg();
+    saveChannels();renderCfg();
   }));
-  list.querySelectorAll('[data-rm]').forEach(el=>el.addEventListener('click',e=>{channels.splice(+e.currentTarget.dataset.rm,1);renderCfg();renderPresets();}));
+  list.querySelectorAll('[data-rm]').forEach(el=>el.addEventListener('click',e=>{channels.splice(+e.currentTarget.dataset.rm,1);saveChannels();renderCfg();renderPresets();}));
   document.getElementById('add-btn').style.display=channels.length>=MAX?'none':'';
+  saveChannels();
 }
 
 function renderPresets(){
@@ -342,7 +370,7 @@ function renderPresets(){
       const ei=channels.findIndex(c=>c.src==='custom'&&!c.url);
       if(ei>=0)channels.splice(ei,1);
       channels.push({...p,main:false,src:'preset'});
-      renderCfg();renderPresets();toast(p.name+' agregado ✓ Tap en Mi MultiView para verlo','ok');
+      saveChannels();renderCfg();renderPresets();toast(p.name+' agregado ✓ Tap en Mi MultiView para verlo','ok');
     });
     g.appendChild(chip);
   });
@@ -506,8 +534,8 @@ async function renderVideos(){
 // Eventos
 document.getElementById('cfg-btn').addEventListener('click',()=>document.getElementById('cfg').classList.toggle('hide'));
 document.getElementById('load-btn').addEventListener('click',()=>{renderVideos();toast('Cargando...','ok');document.getElementById('cfg').classList.add('hide');});
-document.getElementById('add-btn').addEventListener('click',()=>{if(channels.length<MAX){channels.push({src:'custom',url:'',main:false,color:'var(--t2)',name:''});renderCfg();}});
-document.getElementById('clear-btn').addEventListener('click',()=>{channels=CANALES.map(c=>({...c,main:false,src:'preset'}));renderCfg();renderPresets();});
+document.getElementById('add-btn').addEventListener('click',()=>{if(channels.length<MAX){channels.push({src:'custom',url:'',main:false,color:'var(--t2)',name:''});saveChannels();renderCfg();}});
+document.getElementById('clear-btn').addEventListener('click',()=>{channels=CANALES.map(c=>({...c,main:false,src:'preset'}));saveChannels();renderCfg();renderPresets();});
 document.getElementById('ltg').addEventListener('click',e=>{
   const b=e.target.closest('.ltb');if(!b)return;
   layout=b.dataset.l;
