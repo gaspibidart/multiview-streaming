@@ -48,8 +48,7 @@ input[type=text]::placeholder{color:var(--t3);}
 .add-custom-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
 .add-custom-row input{flex:1;min-width:140px;}
 .add-custom-note{font-size:10px;color:var(--t3);margin-top:5px;font-family:var(--mono);}
-.info-box{font-size:11px;color:var(--t2);line-height:1.7;background:var(--bg);border:1px solid var(--bd);border-radius:7px;padding:10px;margin-bottom:10px;}
-.info-box strong{color:var(--green);}
+
 #area{flex:1;min-height:0;position:relative;overflow:hidden;}
 #vcon{position:absolute;inset:0;}
 .vg{display:grid;gap:3px;padding:3px;width:100%;height:100%;}
@@ -70,9 +69,9 @@ input[type=text]::placeholder{color:var(--t3);}
 }
 .main-wrap{display:flex;flex-direction:column;gap:3px;padding:3px;width:100%;height:100%;}
 .main-big{flex:1;min-height:0;}
-.main-row{display:flex;flex-direction:row;gap:3px;height:22%;flex-shrink:0;min-height:80px;max-height:200px;}
+.main-row{display:flex;flex-direction:row;gap:3px;height:20%;flex-shrink:0;min-height:70px;max-height:180px;}
 .main-row .vc{flex:1;min-width:0;}
-@media(max-width:600px){.main-row{height:25%;min-height:90px;}}
+@media(max-width:600px){.main-row{height:22%;min-height:75px;}}
 .vc{background:var(--bg2);border-radius:7px;border:1px solid var(--bd);overflow:hidden;display:flex;flex-direction:column;min-height:0;min-width:0;}
 .vc.is-main-card{border-color:rgba(245,158,11,.7);border-width:2px;}
 .vc.is-offline .vw{opacity:.5;}
@@ -141,19 +140,16 @@ input[type=text]::placeholder{color:var(--t3);}
   </div>
 
   <div class="cfg-pane" id="pane-presets">
-    <div class="info-box">
-      <strong>&#10003; Stats activos</strong> &mdash; viewers y likes en tiempo real.<br>
-      Compartí el link sin que nadie tenga que configurar nada.
-    </div>
+
     <div class="presets-grid" id="presets-grid"></div>
     <div class="add-custom-box">
-      <div class="add-custom-title">+ Agregar canal personalizado</div>
+      <div class="add-custom-title">+ Agregar canal</div>
       <div class="add-custom-row">
         <input type="text" id="custom-url-inp" placeholder="youtube.com/@canal" autocomplete="off">
         <input type="text" id="custom-name-inp" placeholder="Nombre" style="width:90px;" autocomplete="off">
         <button class="btn primary sm" id="add-custom-btn">GUARDAR</button>
       </div>
-      <div class="add-custom-note">Ej: youtube.com/@lacasastream &middot; youtube.com/@somosazz</div>
+      <div class="add-custom-note">Ej: youtube.com/@luzutv</div>
     </div>
   </div>
 </div>
@@ -321,25 +317,40 @@ function renderCfg() {
 function renderPresets() {
   var g = document.getElementById('presets-grid');
   g.innerHTML = '';
+  // Canales preset de la lista base
   CANALES.forEach(function(p) {
-    var added = channels.some(function(c){ return c.src==='preset' && c.id===p.id; });
+    var idx = channels.findIndex(function(c){ return c.src==='preset' && c.id===p.id; });
+    var added = idx >= 0;
     var chip = document.createElement('div');
     chip.className = 'pchip' + (added ? ' added' : '');
-    chip.innerHTML = '<div class="plogo" style="background:'+p.color+'">'+esc(p.name.slice(0,3))+'</div><span class="pname">'+esc(p.name)+'</span><span class="padd">'+(added?'✓':'+')+'</span>';
+    chip.innerHTML = '<div class="plogo" style="background:'+p.color+'">'+esc(p.name.slice(0,3))+'</div><span class="pname">'+esc(p.name)+'</span><span class="padd">'+(added?'✕':'+')+'</span>';
     chip.addEventListener('click', function(){
-      if (channels.some(function(c){ return c.src==='preset'&&c.id===p.id; })) { toast(p.name+' ya está en tu MultiView'); return; }
-      if (channels.length >= MAX) { toast('Máx '+MAX+' canales', 'err'); return; }
-      channels.push({src:'preset', id:p.id, name:p.name, color:p.color, main:false});
-      saveChannels(); renderCfg(); renderPresets();
-      toast(p.name+' agregado ✓', 'ok');
+      var i = channels.findIndex(function(c){ return c.src==='preset'&&c.id===p.id; });
+      if (i >= 0) {
+        // Ya está — eliminar
+        channels.splice(i, 1);
+        saveChannels(); renderCfg(); renderPresets();
+        toast(p.name+' eliminado', '');
+      } else {
+        if (channels.length >= MAX) { toast('Máx '+MAX+' canales', 'err'); return; }
+        channels.push({src:'preset', id:p.id, name:p.name, color:p.color, main:false});
+        saveChannels(); renderCfg(); renderPresets();
+        toast(p.name+' agregado ✓', 'ok');
+      }
     });
     g.appendChild(chip);
   });
-  // Custom channels already saved
-  channels.filter(function(c){ return c.src==='custom'; }).forEach(function(c){
+  // Canales custom guardados
+  channels.forEach(function(c, idx){
+    if (c.src !== 'custom') return;
     var chip = document.createElement('div');
     chip.className = 'pchip added';
-    chip.innerHTML = '<div class="plogo" style="background:'+c.color+'">'+esc((c.name||'?').slice(0,3))+'</div><span class="pname">'+esc(c.name)+'</span><span class="padd" style="color:var(--green)">✓</span>';
+    chip.innerHTML = '<div class="plogo" style="background:'+c.color+'">'+esc((c.name||'?').slice(0,3))+'</div><span class="pname">'+esc(c.name)+'</span><span class="padd">✕</span>';
+    chip.addEventListener('click', function(){
+      channels.splice(idx, 1);
+      saveChannels(); renderCfg(); renderPresets();
+      toast(c.name+' eliminado', '');
+    });
     g.appendChild(chip);
   });
 }
@@ -503,19 +514,38 @@ function renderVideos() {
     var rest = active.filter(function(c){ return c !== bigCh; });
     var wrap = document.createElement('div');
     wrap.className = 'main-wrap';
+
+    // Dividir rest: mitad arriba, mitad abajo
+    var half = Math.ceil(rest.length / 2);
+    var topChs = rest.slice(0, half);
+    var botChs = rest.slice(half);
+
+    // Fila superior (si hay canales arriba)
+    if (topChs.length > 0) {
+      var rowTop = document.createElement('div');
+      rowTop.className = 'main-row';
+      topChs.forEach(function(ch, i){ rowTop.appendChild(buildCard(ch, 'card-t'+i, channels.indexOf(ch))); });
+      wrap.appendChild(rowTop);
+    }
+
+    // Pantalla grande en el medio
     var bigDiv = document.createElement('div');
     bigDiv.className = 'main-big';
     bigDiv.appendChild(buildCard(bigCh, 'card-main', channels.indexOf(bigCh)));
     wrap.appendChild(bigDiv);
-    if (rest.length > 0) {
-      var row = document.createElement('div');
-      row.className = 'main-row';
-      rest.forEach(function(ch, i){ row.appendChild(buildCard(ch, 'card-s'+i, channels.indexOf(ch))); });
-      wrap.appendChild(row);
+
+    // Fila inferior
+    if (botChs.length > 0) {
+      var rowBot = document.createElement('div');
+      rowBot.className = 'main-row';
+      botChs.forEach(function(ch, i){ rowBot.appendChild(buildCard(ch, 'card-b'+i, channels.indexOf(ch))); });
+      wrap.appendChild(rowBot);
     }
+
     vcon.appendChild(wrap);
     resolveCard(bigCh, 'card-main');
-    rest.forEach(function(ch, i){ resolveCard(ch, 'card-s'+i); });
+    topChs.forEach(function(ch, i){ resolveCard(ch, 'card-t'+i); });
+    botChs.forEach(function(ch, i){ resolveCard(ch, 'card-b'+i); });
   } else {
     var n = Math.min(active.length, 9);
     var grid = document.createElement('div');
