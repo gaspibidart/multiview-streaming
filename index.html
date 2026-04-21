@@ -16,7 +16,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;display:flex;flex-direction:column;}
- 
+
 /* HEADER */
 #hdr{height:var(--hdr);flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 10px;background:var(--bg2);border-bottom:1px solid var(--bd);z-index:10;}
 #hdr::-webkit-scrollbar{display:none;}
@@ -31,7 +31,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--text);font-fam
 .btn.primary{background:var(--acc);border-color:var(--acc);color:#fff;}
 .btn.ghost{background:transparent;border-color:var(--bd);}
 .btn.sm{padding:3px 7px;font-size:8px;}
- 
+
 /* CONFIG */
 #cfg{flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--bd);padding:10px;max-height:55vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 #cfg.hide{display:none;}
@@ -58,11 +58,11 @@ input[type=text]::placeholder{color:var(--t3);}
 .pname{font-size:12px;font-weight:600;}.padd{font-size:13px;color:var(--t3);line-height:1;}
 .info-box{font-size:11px;color:var(--t2);line-height:1.7;background:var(--bg);border:1px solid var(--bd);border-radius:7px;padding:10px;margin-bottom:10px;}
 .info-box strong{color:var(--green);}
- 
+
 /* AREA */
 #area{flex:1;min-height:0;position:relative;overflow:hidden;}
 #vcon{position:absolute;inset:0;}
- 
+
 /* ══════════════════════════════════════
    MODO GRID
    Divide el espacio en celdas iguales
@@ -91,7 +91,7 @@ input[type=text]::placeholder{color:var(--t3);}
 .vg.g8{grid-template-columns:1fr 1fr 1fr 1fr;grid-template-rows:1fr 1fr;}
 /* 9 canales: 3x3 */
 .vg.g9{grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;}
- 
+
 /* Mobile: máx 2 columnas */
 @media(max-width:600px){
   .vg.g3{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
@@ -101,7 +101,7 @@ input[type=text]::placeholder{color:var(--t3);}
   .vg.g8{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr 1fr;}
   .vg.g9{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr 1fr 1fr;}
 }
- 
+
 /* ══════════════════════════════════════
    MODO PRINCIPAL
    1 pantalla GRANDE arriba
@@ -116,13 +116,13 @@ input[type=text]::placeholder{color:var(--t3);}
   width:100%;
   height:100%;
 }
- 
+
 /* Pantalla grande: ocupa todo el espacio sobrante */
 .main-big{
   flex:1;
   min-height:0;
 }
- 
+
 /* Fila de chicas: altura fija proporcional */
 .main-row{
   display:flex;
@@ -134,17 +134,17 @@ input[type=text]::placeholder{color:var(--t3);}
   min-height:80px;
   max-height:200px;
 }
- 
+
 /* Cada miniatura ocupa el mismo ancho */
 .main-row .vc{
   flex:1;
   min-width:0;
 }
- 
+
 @media(max-width:600px){
   .main-row{height:25%;min-height:90px;}
 }
- 
+
 /* ══════════════════════════════════════
    CARD
 ══════════════════════════════════════ */
@@ -158,7 +158,7 @@ input[type=text]::placeholder{color:var(--t3);}
 }
 .vc.is-main-card{border-color:rgba(245,158,11,.7);border-width:2px;}
 .vc.is-offline .vw{opacity:.5;}
- 
+
 /* BARRA STATS */
 .ct{
   display:flex;align-items:center;
@@ -182,7 +182,7 @@ input[type=text]::placeholder{color:var(--t3);}
 /* Botón estrella en card: marca como principal */
 .cc.make-main{color:var(--t3);}
 .cc.make-main.is-main{color:var(--yellow);background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.5);}
- 
+
 /* VIDEO */
 .vw{flex:1;position:relative;min-height:0;background:#000;}
 .vw iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
@@ -193,14 +193,14 @@ input[type=text]::placeholder{color:var(--t3);}
 .vph-sub{font-size:9px;color:var(--t3);font-family:var(--mono);}
 .spin{width:14px;height:14px;border:2px solid var(--bd2);border-top-color:var(--acc);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
- 
+
 /* EMPTY */
 #empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px;}
 .empty-ico{width:44px;height:30px;background:rgba(255,255,255,.03);border-radius:8px;display:flex;align-items:center;justify-content:center;}
 .empty-ico::after{content:'';border-left:13px solid rgba(255,255,255,.08);border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px;}
 .empty-t{font-family:var(--mono);font-size:12px;color:var(--t2);}
 .empty-s{font-size:11px;color:var(--t3);max-width:240px;line-height:1.6;}
- 
+
 /* TOAST */
 .toast{position:fixed;bottom:12px;right:12px;background:var(--bg3);border:1px solid var(--bd2);border-radius:6px;padding:7px 12px;font-family:var(--mono);font-size:9px;color:var(--text);z-index:300;transform:translateY(40px);opacity:0;transition:all .2s;pointer-events:none;max-width:85vw;}
 .toast.show{transform:translateY(0);opacity:1;}
@@ -209,7 +209,7 @@ input[type=text]::placeholder{color:var(--t3);}
 </style>
 </head>
 <body>
- 
+
 <div id="hdr">
   <div class="logo"><div class="logo-yt"></div>MULTIVIEW</div>
   <div class="sep"></div>
@@ -221,11 +221,11 @@ input[type=text]::placeholder{color:var(--t3);}
   <button class="btn" id="cfg-btn">&#9881; CONFIG</button>
   <button class="btn primary" id="load-btn">&#9654; CARGAR</button>
 </div>
- 
+
 <div id="cfg" class="hide">
   <div class="cfg-tabs">
-    <button class="cfg-tab on" data-t="canales">Mis canales</button>
-    <button class="cfg-tab" data-t="presets">Presets</button>
+    <button class="cfg-tab on" data-t="canales">Mi MultiView</button>
+    <button class="cfg-tab" data-t="presets">Canales</button>
   </div>
   <div class="cfg-pane on" id="pane-canales">
     <div class="ch-list" id="ch-list"></div>
@@ -242,7 +242,7 @@ input[type=text]::placeholder{color:var(--t3);}
     <div class="presets-grid" id="presets-grid"></div>
   </div>
 </div>
- 
+
 <div id="area">
   <div id="empty">
     <div class="empty-ico"></div>
@@ -251,9 +251,9 @@ input[type=text]::placeholder{color:var(--t3);}
   </div>
   <div id="vcon" style="display:none;"></div>
 </div>
- 
+
 <div class="toast" id="toast"></div>
- 
+
 <script>
 const CANALES=[
   {name:'LUZU',    id:'UCTHaNTsP7hsVgBxARZTuajw',color:'#f97316'},
@@ -266,7 +266,7 @@ const CANALES=[
   {name:'Urbana',  id:'UCC1kfsMJko54AqxtcFECt-A', color:'#38bdf8'},
   {name:'Vorterix',id:'UCvCTWHCbBC0b9UIeLeNs8ug', color:'#a855f7'},
 ];
- 
+
 const MAX=9;
 let channels=CANALES.map(c=>({...c,main:false,src:'preset'}));
 let layout='grid';
@@ -274,7 +274,7 @@ let muteMap={};
 let statsTimers={};
 let liveCache={};
 const TTL=5*60*1000;
- 
+
 async function apiFetch(p){
   const r=await fetch('/api/youtube?'+new URLSearchParams(p));
   return r.json();
@@ -282,7 +282,7 @@ async function apiFetch(p){
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function fmt(n){if(n==null||isNaN(+n))return null;n=+n;if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n.toLocaleString();}
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+type;setTimeout(()=>t.className='toast',2800);}
- 
+
 async function findLive(channelId){
   const c=liveCache[channelId];
   if(c&&Date.now()-c.ts<TTL)return c.videoId;
@@ -293,7 +293,7 @@ async function findLive(channelId){
     return d.videoId;
   }catch(e){return null;}
 }
- 
+
 async function fetchStats(videoId,cardId){
   if(!videoId)return;
   try{
@@ -307,7 +307,7 @@ async function fetchStats(videoId,cardId){
     if(dEl)dEl.style.display=d.viewers?'inline-block':'none';
   }catch(e){}
 }
- 
+
 function renderCfg(){
   const list=document.getElementById('ch-list');list.innerHTML='';
   channels.forEach((ch,i)=>{
@@ -328,7 +328,7 @@ function renderCfg(){
   list.querySelectorAll('[data-rm]').forEach(el=>el.addEventListener('click',e=>{channels.splice(+e.currentTarget.dataset.rm,1);renderCfg();renderPresets();}));
   document.getElementById('add-btn').style.display=channels.length>=MAX?'none':'';
 }
- 
+
 function renderPresets(){
   const g=document.getElementById('presets-grid');g.innerHTML='';
   CANALES.forEach(p=>{
@@ -342,18 +342,18 @@ function renderPresets(){
       const ei=channels.findIndex(c=>c.src==='custom'&&!c.url);
       if(ei>=0)channels.splice(ei,1);
       channels.push({...p,main:false,src:'preset'});
-      renderCfg();renderPresets();toast(p.name+' agregado ✓','ok');switchTab('canales');
+      renderCfg();renderPresets();toast(p.name+' agregado ✓ Tap en Mi MultiView para verlo','ok');
     });
     g.appendChild(chip);
   });
 }
- 
+
 function switchTab(name){
   document.querySelectorAll('.cfg-tab').forEach(t=>t.classList.toggle('on',t.dataset.t===name));
   document.querySelectorAll('.cfg-pane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+name));
   if(name==='presets')renderPresets();
 }
- 
+
 // Marcar principal desde botón en card — si estás en modo principal refresca
 function setMainChannel(idx){
   channels.forEach((c,i)=>c.main=i===idx?!c.main:false);
@@ -372,7 +372,7 @@ function setMainChannel(idx){
     toast('★ Marcado como principal — cambiá a modo PRINCIPAL para verlo grande','ok');
   }
 }
- 
+
 function loadIframe(cardId,channelId,videoId){
   const vw=document.getElementById('vw-'+cardId);if(!vw)return;
   let src;
@@ -387,15 +387,15 @@ function loadIframe(cardId,channelId,videoId){
     statsTimers[cardId]=setInterval(()=>fetchStats(videoId,cardId),30000);
   }
 }
- 
+
 function showOffline(cardId,name){
   const vw=document.getElementById('vw-'+cardId);if(!vw)return;
   document.getElementById(cardId)?.classList.add('is-offline');
   vw.innerHTML=`<div class="vph"><div class="vph-ico"></div><span class="vph-txt">${esc(name)}</span><span class="vph-sub">Sin transmisión ahora</span></div>`;
 }
- 
+
 function clearTimers(){Object.values(statsTimers).forEach(clearInterval);statsTimers={};}
- 
+
 function buildCard(ch,cardId,chIdx){
   const card=document.createElement('div');
   card.className=`vc${ch.main?' is-main-card':''}`;
@@ -409,7 +409,7 @@ function buildCard(ch,cardId,chIdx){
         <div class="stat-block">
           <span class="live-dot" style="display:none;"></span>
           <span class="stat-ico">👁</span>
-          <span class="stat-val dim sv-viewers">—</span>
+          <span class="stat-val dim sv-viewers" style="background:var(--acc);color:#fff;font-weight:700;padding:2px 7px;border-radius:4px;font-size:15px;min-width:0;">—</span>
         </div>
         <div class="stat-block">
           <span class="stat-ico">♥</span>
@@ -437,7 +437,7 @@ function buildCard(ch,cardId,chIdx){
   });
   return card;
 }
- 
+
 async function resolveCard(ch,cardId){
   if(ch.src==='preset'){
     const videoId=await findLive(ch.id);
@@ -450,7 +450,7 @@ async function resolveCard(ch,cardId){
     else{const vw=document.getElementById('vw-'+cardId);if(vw)vw.innerHTML=`<div class="vph"><div class="vph-ico"></div><span class="vph-txt">URL no válida</span></div>`;}
   }
 }
- 
+
 async function renderVideos(){
   clearTimers();
   const active=channels.filter(c=>c.src==='preset'?true:(c.url||'').trim());
@@ -460,22 +460,22 @@ async function renderVideos(){
   if(!active.length){vcon.style.display='none';empty.style.display='flex';return;}
   empty.style.display='none';
   vcon.style.display='block';
- 
+
   // ── MODO PRINCIPAL ──
   if(layout==='main'){
     // Canal principal: el marcado con ★, si no hay ninguno usar el primero
     const bigCh = active.find(c=>c.main) || active[0];
     const rest  = active.filter(c=>c!==bigCh);
- 
+
     const wrap=document.createElement('div');
     wrap.className='main-wrap';
- 
+
     // Pantalla grande
     const bigDiv=document.createElement('div');
     bigDiv.className='main-big';
     bigDiv.appendChild(buildCard(bigCh,'card-main',channels.indexOf(bigCh)));
     wrap.appendChild(bigDiv);
- 
+
     // Fila de chicas (solo si hay más de 1 canal)
     if(rest.length>0){
       const row=document.createElement('div');
@@ -485,13 +485,13 @@ async function renderVideos(){
       });
       wrap.appendChild(row);
     }
- 
+
     vcon.appendChild(wrap);
- 
+
     // Resolver iframes
     resolveCard(bigCh,'card-main');
     rest.forEach((ch,i)=>resolveCard(ch,'card-s'+i));
- 
+
   // ── MODO GRID ──
   }else{
     const n=Math.min(active.length,9);
@@ -502,7 +502,7 @@ async function renderVideos(){
     active.forEach((ch,i)=>resolveCard(ch,'card-'+i));
   }
 }
- 
+
 // Eventos
 document.getElementById('cfg-btn').addEventListener('click',()=>document.getElementById('cfg').classList.toggle('hide'));
 document.getElementById('load-btn').addEventListener('click',()=>{renderVideos();toast('Cargando...','ok');document.getElementById('cfg').classList.add('hide');});
@@ -516,7 +516,7 @@ document.getElementById('ltg').addEventListener('click',e=>{
   renderVideos();
 });
 document.querySelectorAll('.cfg-tab').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.t)));
- 
+
 renderCfg();
 renderVideos();
 </script>
