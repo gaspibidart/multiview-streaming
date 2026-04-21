@@ -230,7 +230,6 @@ input[type=text]::placeholder{color:var(--t3);}
   <div class="cfg-pane on" id="pane-canales">
     <div class="ch-list" id="ch-list"></div>
     <div class="ch-actions">
-      <button class="btn ghost sm" id="add-btn">+ AGREGAR</button>
       <button class="btn ghost sm" id="clear-btn">&#10005; LIMPIAR</button>
     </div>
   </div>
@@ -240,6 +239,15 @@ input[type=text]::placeholder{color:var(--t3);}
       Compartí el link sin necesidad de configurar nada.
     </div>
     <div class="presets-grid" id="presets-grid"></div>
+    <div style="margin-top:12px;border-top:1px solid var(--bd);padding-top:12px;">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--t2);margin-bottom:8px;letter-spacing:.06em;text-transform:uppercase;">+ Agregar canal personalizado</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="custom-url-inp" placeholder="youtube.com/@canal" style="flex:1;min-width:150px;" autocomplete="off">
+        <input type="text" id="custom-name-inp" placeholder="Nombre" style="width:90px;" autocomplete="off">
+        <button class="btn primary sm" id="add-custom-btn">+ GUARDAR</button>
+      </div>
+      <div style="font-size:10px;color:var(--t3);margin-top:6px;font-family:var(--mono);">Ej: youtube.com/@lacasastream &middot; youtube.com/@luzutv</div>
+    </div>
   </div>
 </div>
 
@@ -365,12 +373,10 @@ function renderPresets(){
     chip.className='pchip'+(added?' added':'');
     chip.innerHTML=`<div class="plogo" style="background:${p.color}">${esc(p.name.slice(0,3))}</div><span class="pname">${esc(p.name)}</span><span class="padd">${added?'✓':'+'}</span>`;
     chip.addEventListener('click',()=>{
-      if(channels.some(c=>c.id===p.id)){toast(p.name+' ya está');return;}
+      if(channels.some(c=>c.id===p.id)){toast(p.name+' ya está en tu MultiView');return;}
       if(channels.length>=MAX){toast('Máx '+MAX,'err');return;}
-      const ei=channels.findIndex(c=>c.src==='custom'&&!c.url);
-      if(ei>=0)channels.splice(ei,1);
       channels.push({...p,main:false,src:'preset'});
-      saveChannels();renderCfg();renderPresets();toast(p.name+' agregado ✓ Tap en Mi MultiView para verlo','ok');
+      saveChannels();renderCfg();renderPresets();toast(p.name+' agregado ✓','ok');
     });
     g.appendChild(chip);
   });
@@ -466,16 +472,55 @@ function buildCard(ch,cardId,chIdx){
   return card;
 }
 
+// Extraer channelId o videoId de cualquier URL de YouTube
+function parseYouTubeUrl(url){
+  url=(url||'').trim();
+  if(!url) return {type:null};
+  // Video ID directo
+  const vid=url.match(/(?:[?&]v=|youtu\.be\/|\/embed\/|\/live\/)([a-zA-Z0-9_-]{11})/);
+  if(vid) return {type:'video',id:vid[1]};
+  // Channel ID directo UC...
+  const chId=url.match(/\/channel\/(UC[a-zA-Z0-9_-]{22})/);
+  if(chId) return {type:'channel',id:chId[1]};
+  // @handle — extraer handle y buscar live via embed
+  const handle=url.match(/(?:youtube\.com\/)?@([a-zA-Z0-9_.%-]+)/);
+  if(handle) return {type:'handle',handle:'@'+handle[1]};
+  // Raw handle sin @
+  if(/^[a-zA-Z0-9_.%-]{3,}$/.test(url)) return {type:'handle',handle:'@'+url};
+  return {type:null};
+}
+
 async function resolveCard(ch,cardId){
-  if(ch.src==='preset'){
+  if(ch.src==='preset'||ch.src==='custom_preset'||ch.src==='handle_preset'&&ch.id){
     const videoId=await findLive(ch.id);
     if(videoId)loadIframe(cardId,ch.id,videoId);
     else showOffline(cardId,ch.name);
+  }else if(ch.src==='handle_preset'&&!ch.id&&ch.url){
+    // Canal custom por handle — embed directo
+    const parsed=parseYouTubeUrl(ch.url);
+    if(parsed.type==='handle'){
+      const src=`https://www.youtube-nocookie.com/embed/live_stream?channel=${encodeURIComponent(parsed.handle)}&autoplay=1&mute=1&enablejsapi=1&playsinline=1`;
+      const vw=document.getElementById('vw-'+cardId);
+      if(vw)vw.innerHTML=`<iframe id="yt-${cardId}" src="${src}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen playsinline></iframe>`;
+    }else resolveCard({...ch,src:'custom'},cardId);
   }else{
-    const m=(ch.url||'').match(/(?:[?&]v=|youtu\.be\/|\/embed\/)([a-zA-Z0-9_-]{11})/);
-    const vid=m?m[1]:null;
-    if(vid)loadIframe(cardId,null,vid);
-    else{const vw=document.getElementById('vw-'+cardId);if(vw)vw.innerHTML=`<div class="vph"><div class="vph-ico"></div><span class="vph-txt">URL no válida</span></div>`;}
+    const parsed=parseYouTubeUrl(ch.url);
+    if(parsed.type==='video'){
+      loadIframe(cardId,null,parsed.id);
+    }else if(parsed.type==='channel'){
+      // Buscar live por channelId via API
+      const videoId=await findLive(parsed.id);
+      if(videoId)loadIframe(cardId,parsed.id,videoId);
+      else showOffline(cardId,ch.name||ch.url);
+    }else if(parsed.type==='handle'){
+      // Embed directo por handle (sin API key busca el live del canal)
+      const src=\`https://www.youtube-nocookie.com/embed/live_stream?channel=\${encodeURIComponent(parsed.handle)}&autoplay=1&mute=1&enablejsapi=1&playsinline=1\`;
+      const vw=document.getElementById('vw-'+cardId);
+      if(vw)vw.innerHTML=\`<iframe id="yt-\${cardId}" src="\${src}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen playsinline></iframe>\`;
+    }else{
+      const vw=document.getElementById('vw-'+cardId);
+      if(vw)vw.innerHTML=\`<div class="vph"><div class="vph-ico"></div><span class="vph-txt">URL no reconocida</span><span class="vph-sub">Usá: youtube.com/@canal</span></div>\`;
+    }
   }
 }
 
@@ -530,6 +575,39 @@ async function renderVideos(){
     active.forEach((ch,i)=>resolveCard(ch,'card-'+i));
   }
 }
+
+// Colores para canales custom
+const CUSTOM_COLORS=['#e11d48','#7c3aed','#0891b2','#059669','#d97706','#dc2626','#2563eb','#0d9488','#9333ea'];
+let customColorIdx=0;
+
+// Guardar canal custom como preset propio
+document.getElementById('add-custom-btn').addEventListener('click',()=>{
+  const url=(document.getElementById('custom-url-inp').value||'').trim();
+  const name=(document.getElementById('custom-name-inp').value||'').trim();
+  if(!url){toast('Pegá la URL del canal','err');return;}
+  const parsed=parseYouTubeUrl(url);
+  if(parsed.type===null){toast('URL no reconocida','err');return;}
+  const displayName=name||(parsed.handle?parsed.handle.replace('@',''):url.split('/').pop())||'Canal';
+  if(channels.length>=MAX){toast('Máx '+MAX+' en tu MultiView — eliminá uno primero','err');return;}
+  // Crear como custom_preset con handle/id
+  const newCh={
+    src: parsed.type==='channel'?'preset':'handle_preset',
+    id: parsed.type==='channel'?parsed.id:null,
+    handle: parsed.type==='handle'?parsed.handle:null,
+    url: url,
+    name: displayName,
+    color: CUSTOM_COLORS[customColorIdx%CUSTOM_COLORS.length],
+    main: false,
+  };
+  customColorIdx++;
+  channels.push(newCh);
+  saveChannels();
+  renderCfg();
+  renderPresets();
+  document.getElementById('custom-url-inp').value='';
+  document.getElementById('custom-name-inp').value='';
+  toast(displayName+' agregado a Mi MultiView ✓','ok');
+});
 
 // Eventos
 document.getElementById('cfg-btn').addEventListener('click',()=>document.getElementById('cfg').classList.toggle('hide'));
