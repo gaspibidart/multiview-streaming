@@ -153,7 +153,7 @@ input[type=text]::placeholder{color:var(--t3);}
         <input type="text" id="custom-name-inp" placeholder="Nombre" style="width:90px;" autocomplete="off">
         <button class="btn primary sm" id="add-custom-btn">GUARDAR</button>
       </div>
-      <div class="add-custom-note">Ej: youtube.com/@lacasastream</div>
+      <div class="add-custom-note">Ej: youtube.com/@lacasastream &middot; youtube.com/@somosazz</div>
     </div>
   </div>
 </div>
@@ -265,19 +265,22 @@ function fetchStats(videoId, cardId) {
 
 // ── PARSE URL ──
 function parseYTUrl(url) {
-  url = (url||'').trim();
+  // Limpiar parametros extra como ?si=xxx que agrega la app de YouTube
+  url = (url||'').trim().split('?')[0].split('&')[0];
   if (!url) return null;
-  // video ID directo o en URL
+  // video ID en URL
   var vm = url.match(/(?:[?&]v=|youtu\.be\/|\/embed\/|\/live\/)([a-zA-Z0-9_-]{11})/);
   if (vm) return {type:'video', id:vm[1]};
-  // channel ID
+  // video ID directo (11 chars)
+  if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return {type:'video', id:url};
+  // channel ID UC...
   var cm = url.match(/\/channel\/(UC[a-zA-Z0-9_-]{22})/);
   if (cm) return {type:'channelId', id:cm[1]};
-  // @handle
-  var hm = url.match(/(?:youtube\.com\/)?@([a-zA-Z0-9_.%-]+)/);
-  if (hm) return {type:'handle', handle:'@'+hm[1]};
-  // texto plano sin @
-  if (/^[a-zA-Z0-9_.%-]{3,30}$/.test(url)) return {type:'handle', handle:'@'+url};
+  // @handle en URL
+  var hm = url.match(/@([a-zA-Z0-9_.%-]+)/);
+  if (hm) return {type:'handle', handle:hm[1]};
+  // texto plano
+  if (/^[a-zA-Z0-9_.%-]{3,30}$/.test(url)) return {type:'handle', handle:url};
   return null;
 }
 
@@ -417,10 +420,19 @@ function resolveCard(ch, cardId) {
         else showOffline(cardId, ch.name||ch.url);
       });
     } else if (parsed.type === 'handle') {
-      // embed live por handle
-      var src = 'https://www.youtube-nocookie.com/embed/live_stream?channel='+encodeURIComponent(parsed.handle)+'&autoplay=1&mute=1&enablejsapi=1&playsinline=1';
-      var vw = document.getElementById('vw-'+cardId);
-      if (vw) vw.innerHTML = '<iframe id="yt-'+cardId+'" src="'+src+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen playsinline></iframe>';
+      // Buscar channelId del handle via API, luego el live
+      apiFetch({action:'resolveHandle', handle:parsed.handle}).then(function(d){
+        if (d && d.channelId) {
+          findLive(d.channelId).then(function(videoId){
+            if (videoId) loadIframe(cardId, d.channelId, videoId);
+            else showOffline(cardId, ch.name||('@'+parsed.handle));
+          });
+        } else {
+          showOffline(cardId, ch.name||('@'+parsed.handle));
+        }
+      }).catch(function(){
+        showOffline(cardId, ch.name||('@'+parsed.handle));
+      });
     }
   }
 }
