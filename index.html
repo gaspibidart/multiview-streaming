@@ -66,6 +66,12 @@ input[type=text]::placeholder{color:var(--t3);}
   .vg.g5,.vg.g6{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;}
   .vg.g7,.vg.g8{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr 1fr;}
   .vg.g9{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr 1fr 1fr;}
+  /* En mobile ocultar likes en todos los grids para dar espacio a views */
+  .stat-ico-likes,.sv-likes{display:none;}
+  /* Views más grandes en mobile */
+  .sv-viewers{font-size:14px;padding:2px 7px;}
+  /* Botones más chicos para dar espacio */
+  .cc{width:20px;height:20px;font-size:9px;}
 }
 .main-wrap{display:flex;flex-direction:column;gap:3px;padding:3px;width:100%;height:100%;}
 .main-big{flex:1;min-height:0;}
@@ -75,19 +81,27 @@ input[type=text]::placeholder{color:var(--t3);}
 .vc{background:var(--bg2);border-radius:7px;border:1px solid var(--bd);overflow:hidden;display:flex;flex-direction:column;min-height:0;min-width:0;}
 .vc.is-main-card{border-color:rgba(245,158,11,.7);border-width:2px;}
 .vc.is-offline .vw{opacity:.5;}
-.ct{display:flex;align-items:center;padding:4px 7px;background:rgba(0,0,0,.7);border-bottom:1px solid var(--bd);gap:4px;flex-shrink:0;min-height:30px;}
+.ct{display:flex;align-items:center;padding:3px 6px;background:rgba(0,0,0,.75);border-bottom:1px solid var(--bd);gap:4px;flex-shrink:0;min-height:28px;}
 .ch-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .ch-name{font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;}
-.stats{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.stats{display:flex;align-items:center;gap:4px;flex-shrink:0;}
 .stat-block{display:flex;align-items:center;gap:2px;}
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--acc);flex-shrink:0;animation:blink 1.5s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.6)}}
-.sv-viewers{font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;background:var(--acc);padding:2px 6px;border-radius:4px;min-width:0;}
-.sv-viewers.dim{background:var(--bg3);color:var(--t3);font-size:9px;}
-.sv-likes{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);min-width:26px;text-align:right;}
+/* VIEWS — siempre visible, fondo rojo, negrita */
+.sv-viewers{font-family:var(--mono);font-size:13px;font-weight:700;color:#fff;background:var(--acc);padding:1px 6px;border-radius:4px;white-space:nowrap;}
+.sv-viewers.dim{background:rgba(232,48,58,.25);color:rgba(255,255,255,.4);font-size:11px;}
+/* LIKES — se ocultan en pantallas chicas */
+.sv-likes{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text);min-width:24px;text-align:right;}
 .sv-likes.dim{color:var(--t3);font-size:9px;}
 .stat-ico{font-size:10px;}
-.card-btns{display:flex;gap:2px;margin-left:3px;flex-shrink:0;}
+/* En cards pequeñas (modo principal miniaturas) ocultar likes e icono */
+.main-row .stat-ico-likes,.main-row .sv-likes{display:none;}
+/* En grid con muchas celdas también */
+.vg.g7 .stat-ico-likes,.vg.g7 .sv-likes,
+.vg.g8 .stat-ico-likes,.vg.g8 .sv-likes,
+.vg.g9 .stat-ico-likes,.vg.g9 .sv-likes{display:none;}
+.card-btns{display:flex;gap:2px;margin-left:2px;flex-shrink:0;}
 .cc{width:22px;height:22px;border-radius:4px;border:1px solid var(--bd);background:rgba(0,0,0,.3);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;-webkit-tap-highlight-color:transparent;}
 .cc.muted{color:var(--acc);}
 .cc.make-main{color:var(--t3);}
@@ -241,7 +255,11 @@ function findLive(channelId) {
   var c = liveCache[channelId];
   if (c && Date.now() - c.ts < TTL) return Promise.resolve(c.videoId);
   return apiFetch({action:'findLive', channelId:channelId}).then(function(d){
-    if (d.error) return null;
+    if (d.error) {
+      // Si es error de quota, cachear null por 5 min para no seguir gastando
+      liveCache[channelId] = {videoId: null, ts: Date.now()};
+      return null;
+    }
     liveCache[channelId] = {videoId: d.videoId, ts: Date.now()};
     return d.videoId;
   }).catch(function(){ return null; });
@@ -385,13 +403,11 @@ function loadIframe(cardId, channelId, videoId) {
   var src;
   if (videoId) {
     src = 'https://www.youtube-nocookie.com/embed/'+videoId+'?autoplay=1&mute=1&enablejsapi=1&rel=0&playsinline=1';
-  } else if (channelId) {
-    src = 'https://www.youtube-nocookie.com/embed/live_stream?channel='+channelId+'&autoplay=1&mute=1&enablejsapi=1&playsinline=1';
-  } else return;
+  } else return; // sin videoId no intentar embed (causa Error 153)
   vw.innerHTML = '<iframe id="yt-'+cardId+'" src="'+src+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen playsinline></iframe>';
   if (videoId) {
     fetchStats(videoId, cardId);
-    statsTimers[cardId] = setInterval(function(){ fetchStats(videoId, cardId); }, 30000);
+    statsTimers[cardId] = setInterval(function(){ fetchStats(videoId, cardId); }, 60000);
   }
 }
 
@@ -412,8 +428,13 @@ function clearTimers() {
 function resolveCard(ch, cardId) {
   if (ch.src === 'preset') {
     findLive(ch.id).then(function(videoId){
-      if (videoId) loadIframe(cardId, ch.id, videoId);
-      else showOffline(cardId, ch.name);
+      if (videoId) {
+        loadIframe(cardId, ch.id, videoId);
+      } else {
+        showOffline(cardId, ch.name);
+      }
+    }).catch(function(){
+      showOffline(cardId, ch.name);
     });
   } else {
     // custom channel — parsear URL
@@ -465,7 +486,7 @@ function buildCard(ch, cardId, chIdx) {
           '<span class="sv-viewers dim">&#8212;</span>' +
         '</div>' +
         '<div class="stat-block">' +
-          '<span class="stat-ico">&#9829;</span>' +
+          '<span class="stat-ico stat-ico-likes">&#9829;</span>' +
           '<span class="sv-likes dim">&#8212;</span>' +
         '</div>' +
       '</div>' +
